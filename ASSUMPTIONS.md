@@ -29,3 +29,4 @@
 ## Scope
 - No admin panel in the first version.
 - The app runs on a local network or one deployed server, with SQLite as the database.
+- Names are unique. If a name is already taken, the visitor must enter their PIN to continue as that person, or choose a different name.
