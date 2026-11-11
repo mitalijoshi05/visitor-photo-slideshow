@@ -10,6 +10,7 @@ from app.images import ImageError, validate_and_save
 from app.security import hash_pin, verify_pin
 from fastapi.responses import FileResponse
 from app.config import UPLOAD_DIR
+from fastapi.staticfiles import StaticFiles
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,6 +20,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+UPLOAD_DIR.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/")
 def home():
@@ -84,3 +87,28 @@ async def upload(
         conn.close()
 
     return {"ok": True, "returning_visitor": returning, "photos_saved": len(saved)}
+
+@app.get("/display")
+def display_page():
+    return FileResponse("app/static/display.html")
+
+
+@app.get("/api/photos")
+def list_photos():
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT p.id, p.filename, v.name
+            FROM photos p
+            JOIN visitors v ON v.id = p.visitor_id
+            WHERE p.consent = 1
+            ORDER BY p.id ASC
+            """
+        ).fetchall()
+    finally:
+        conn.close()
+    return [
+        {"id": r["id"], "url": f"/uploads/{r['filename']}", "name": r["name"]}
+        for r in rows
+    ]

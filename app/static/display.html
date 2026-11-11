@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photo Slideshow</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; color: #fff;
+                 font-family: sans-serif; overflow: hidden; }
+    #stage { position: relative; width: 100%; height: 100%; }
+    #photo { width: 100%; height: 100%; object-fit: contain;
+             transition: opacity 0.6s; opacity: 0; }
+    #caption { position: absolute; left: 24px; bottom: 24px; font-size: 28px;
+               background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 8px;
+               display: none; }
+    #empty { position: absolute; inset: 0; display: flex; align-items: center;
+             justify-content: center; font-size: 32px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <img id="photo" alt="">
+    <div id="caption"></div>
+    <div id="empty">🪔 Waiting for photos...<br>Scan the QR code to upload yours!</div>
+  </div>
+
+  <script>
+    const SLIDE_SECONDS = 5;       // ASSUMPTIONS.md se match karna chahiye
+    const REFRESH_SECONDS = 5;     // kitni der me nayi list laani hai
+
+    const photo = document.getElementById("photo");
+    const caption = document.getElementById("caption");
+    const empty = document.getElementById("empty");
+
+    let photos = [];
+    let index = 0;
+
+    async function loadPhotos() {
+      try {
+        const res = await fetch("/api/photos");
+        photos = await res.json();
+      } catch (e) {
+        // network error: purani list hi chalne do
+      }
+    }
+
+    function showNext() {
+      if (photos.length === 0) {
+        empty.style.display = "flex";
+        photo.style.opacity = 0;
+        caption.style.display = "none";
+        return;
+      }
+      empty.style.display = "none";
+      if (index >= photos.length) index = 0;
+
+      const current = photos[index];
+      index++;
+
+      photo.style.opacity = 0;
+      setTimeout(() => {
+        photo.src = current.url;
+        photo.onload = () => { photo.style.opacity = 1; };
+        caption.textContent = "📸 " + current.name;
+        caption.style.display = "block";
+      }, 600);
+    }
+
+    loadPhotos().then(showNext);
+    setInterval(showNext, SLIDE_SECONDS * 1000);
+    setInterval(loadPhotos, REFRESH_SECONDS * 1000);
+  </script>
+</body>
+</html>
