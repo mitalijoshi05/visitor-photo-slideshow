@@ -11,3 +11,9 @@ Server returned 422 "Expected UploadFile, received str".
 How I noticed: The error message and the screenshot showed a text input.
 Fix: Built a real HTML upload form (Part B) and tested through it instead.
 Lesson: Do not trust a testing tool blindly; confirm with a real browser form.
+
+## Entry 4: Orphan files on failed upload
+Prompt: Asked AI for the upload endpoint with validation and PIN check.
+Problem: AI saved photos to disk first and checked the PIN afterwards. A wrong PIN left unused files in uploads/.
+How I noticed: Counted files in uploads/ before and after a wrong-PIN upload.
+Fix: Added cleanup (delete saved files) on wrong PIN and on a failed validation.

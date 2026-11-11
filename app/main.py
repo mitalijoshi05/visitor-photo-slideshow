@@ -9,6 +9,7 @@ from app.database import get_connection, init_db
 from app.images import ImageError, validate_and_save
 from app.security import hash_pin, verify_pin
 from fastapi.responses import FileResponse
+from app.config import UPLOAD_DIR
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
