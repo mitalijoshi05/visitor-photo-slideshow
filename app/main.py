@@ -2,6 +2,11 @@ import re
 from contextlib import asynccontextmanager
 from typing import List
 
+import asyncio
+import json
+from fastapi.responses import FileResponse, StreamingResponse
+from app import events
+
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 
 from app.config import MAX_FILE_SIZE_BYTES, MAX_FILES_PER_UPLOAD
@@ -112,3 +117,20 @@ def list_photos():
         {"id": r["id"], "url": f"/uploads/{r['filename']}", "name": r["name"]}
         for r in rows
     ]
+
+@app.get("/events")
+async def stream_events():
+    q = events.subscribe()
+
+    async def gen():
+        try:
+            while True:
+                try:
+                    event = await asyncio.wait_for(q.get(), timeout=15)
+                    yield f"data: {json.dumps(event)}\n\n"
+                except asyncio.TimeoutError:
+                    yield ": keep-alive\n\n"  # connection zinda rakhne ke liye
+        finally:
+            events.unsubscribe(q)
+
+    return StreamingResponse(gen(), media_type="text/event-stream")
