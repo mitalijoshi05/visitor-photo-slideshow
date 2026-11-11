@@ -134,3 +134,32 @@ async def stream_events():
             events.unsubscribe(q)
 
     return StreamingResponse(gen(), media_type="text/event-stream")
+@app.post("/delete-my-photos")
+def delete_my_photos(name: str = Form(...), pin: str = Form(...)):
+    name = name.strip()
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT id, pin_hash FROM visitors WHERE name = ?", (name,)
+        ).fetchone()
+
+        # Same message dono cases me, taaki koi guess na kar sake ki naam exist karta hai
+        if row is None or not verify_pin(pin, row["pin_hash"]):
+            raise HTTPException(401, "Name or PIN is incorrect.")
+
+        files = conn.execute(
+            "SELECT filename FROM photos WHERE visitor_id = ?", (row["id"],)
+        ).fetchall()
+
+        # Pehle DB se hatao (CASCADE se photos rows bhi hat jayengi)
+        conn.execute("DELETE FROM visitors WHERE id = ?", (row["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+
+    # Phir disk se files hatao
+    for f in files:
+        (UPLOAD_DIR / f["filename"]).unlink(missing_ok=True)
+
+    events.publish({"type": "photos_deleted", "visitor": name})
+    return {"ok": True, "photos_deleted": len(files)}

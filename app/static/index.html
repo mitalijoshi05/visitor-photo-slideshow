@@ -38,6 +38,17 @@
 
     <button type="submit">Upload</button>
   </form>
+  <hr style="margin-top:30px">
+  <h2>Delete my photos</h2>
+  <form id="deleteForm">
+    <label>Your name
+      <input type="text" name="name" maxlength="50" required>
+    </label>
+    <label>Your PIN
+      <input type="password" name="pin" inputmode="numeric" pattern="\d{4}" maxlength="4" required>
+    </label>
+    <button type="submit">Delete all my photos</button>
+  </form>
 
   <div id="msg"></div>
 
@@ -71,6 +82,25 @@
       }
       button.disabled = false;
     });
+  
+      const deleteForm = document.getElementById("deleteForm");
+    deleteForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!confirm("Delete all your photos? This cannot be undone.")) return;
+      try {
+        const res = await fetch("/delete-my-photos", { method: "POST", body: new FormData(deleteForm) });
+        const data = await res.json();
+        if (res.ok) {
+          show(data.photos_deleted + " photo(s) deleted.", true);
+          deleteForm.reset();
+        } else {
+          show(typeof data.detail === "string" ? data.detail : "Something went wrong.", false);
+        }
+      } catch (err) {
+        show("Network error. Please try again.", false);
+      }
+    });
+  
   </script>
 </body>
 </html>

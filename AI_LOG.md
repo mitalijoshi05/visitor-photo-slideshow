@@ -17,3 +17,9 @@ Prompt: Asked AI for the upload endpoint with validation and PIN check.
 Problem: AI saved photos to disk first and checked the PIN afterwards. A wrong PIN left unused files in uploads/.
 How I noticed: Counted files in uploads/ before and after a wrong-PIN upload.
 Fix: Added cleanup (delete saved files) on wrong PIN and on a failed validation.
+
+## Entry 5: Photos appeared late (polling gap)
+Prompt: Asked AI to build the display page.
+Problem: AI used polling every 5 seconds, so a new photo took up to 10 seconds to appear. The assignment says "as soon as an upload completes".
+How I noticed: Uploaded a photo while watching /display and timed the delay.
+Fix: Added Server-Sent Events (/events). The server publishes an event after each upload and the display reloads the list immediately. Kept a 60 second refresh as a backup.

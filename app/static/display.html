@@ -66,6 +66,17 @@
       }, 600);
     }
 
+        source.onmessage = async (e) => {
+      const event = JSON.parse(e.data);
+      if (event.type === "photos_deleted") {
+        await loadPhotos();   // list refresh, hat chuki photos ab nahi aayengi
+        index = 0;
+        showNext();
+      } else {
+        handleNewPhotos();
+      }
+    };
+    
     loadPhotos().then(showNext);
     setInterval(showNext, SLIDE_SECONDS * 1000);
     setInterval(loadPhotos, REFRESH_SECONDS * 1000);
