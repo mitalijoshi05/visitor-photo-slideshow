@@ -23,3 +23,8 @@ Prompt: Asked AI to build the display page.
 Problem: AI used polling every 5 seconds, so a new photo took up to 10 seconds to appear. The assignment says "as soon as an upload completes".
 How I noticed: Uploaded a photo while watching /display and timed the delay.
 Fix: Added Server-Sent Events (/events). The server publishes an event after each upload and the display reloads the list immediately. Kept a 60 second refresh as a backup.
+
+## Entry 6: No limit on PIN guessing
+Problem: AI's upload and delete endpoints accept unlimited wrong PINs. A 4-digit PIN has only 10,000 combinations, so it can be brute forced.
+How I noticed: Reviewed the delete feature while thinking about who could misuse it.
+Fix: Planned rate limiting per IP and per name.
