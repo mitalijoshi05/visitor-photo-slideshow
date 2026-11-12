@@ -220,4 +220,9 @@ __marimo__/
 .streamlit/secrets.toml
 
 data/
+uploads/.venv/
+
+data/
 uploads/
+.venv/
+.env
