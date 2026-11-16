@@ -23,10 +23,16 @@ How I noticed: AI warned about it, and I confirmed by counting files in uploads/
 Fix: Added cleanup that deletes saved files on wrong PIN and on failed validation. Added a test for it.
 
 ## Entry 5 (AI mistake): Photos appeared late
+
 Prompt: Asked AI to build the display page.
-Problem: It used polling every 5 seconds, so a new photo took up to 10 seconds. The assignment says "as soon as an upload completes".
-How I noticed: Uploaded a photo while watching /display.
-Fix: Added Server-Sent Events (/events). Kept a 60 second refresh as backup.
+
+Problem: It used polling every 5 seconds, so a new photo could take several seconds to appear. The assignment says "as soon as an upload completes".
+
+How I noticed: Uploaded a photo while watching /display and observed the delay.
+
+Fix: Added Server-Sent Events (/events) using EventSource so the slideshow can receive new-photo notifications immediately. Kept periodic polling as a backup to refresh the photo list if needed.
+
+Verification: Tested by uploading new photos while the slideshow was running and confirmed that they appeared on the display.
 
 ## Entry 6 (AI gap): No limit on PIN guessing
 Problem: Upload and delete accepted unlimited wrong PINs. A 4-digit PIN has only 10,000 combinations.
@@ -42,3 +48,15 @@ Fix: Added a background cleanup task and a test that fakes an old photo.
 Problem: pytest said "collected 0 items" and used Anaconda's Python instead of my venv.
 How I noticed: The test output showed /opt/anaconda3/bin/python and (base) in the prompt.
 Fix: Ran conda deactivate, activated venv, and used python -m pytest.
+
+## Entry 9: Automated testing with AI assistance
+
+Prompt: Asked AI to help create automated tests for the application's upload, visitor identification, PIN validation, photo deletion, rate limiting, and automatic cleanup features.
+
+Result: AI helped create a pytest test suite with 15 test cases.
+
+How I verified it: Ran `python -m pytest -v` in my virtual environment.
+
+Final result: All 15 tests passed successfully, with 1 deprecation warning.
+
+My decision: Kept the tests and also performed additional manual testing for consent validation, invalid file uploads, and the maximum photo upload limit.

@@ -49,6 +49,6 @@ erDiagram
 
 ## Known limitations
 - Rate limiting is in memory: resets on restart, works for one server only.
-- Auto-delete does not notify the display; it refreshes within 60 seconds.
+- Auto-delete does not directly notify the display; the display refreshes the photo list through periodic polling as a backup (every 30 seconds).
 - A 4-digit PIN is weak by design; rate limiting reduces the risk.
 - SQLite suits one event, not heavy traffic.

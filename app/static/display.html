@@ -24,62 +24,164 @@
     <div id="empty">🪔 Waiting for photos...<br>Scan the QR code to upload yours!</div>
   </div>
 
-  <script>
-    const SLIDE_SECONDS = 5;       // ASSUMPTIONS.md se match karna chahiye
-    const REFRESH_SECONDS = 5;     // kitni der me nayi list laani hai
+ 
+<script>
+  const SLIDE_SECONDS = 5;
+  const REFRESH_SECONDS = 30;
 
-    const photo = document.getElementById("photo");
-    const caption = document.getElementById("caption");
-    const empty = document.getElementById("empty");
+  const photo = document.getElementById("photo");
+  const caption = document.getElementById("caption");
+  const empty = document.getElementById("empty");
 
-    let photos = [];
-    let index = 0;
+  let photos = [];
+  let index = 0;
+  let priorityQueue = [];
+  let knownIds = new Set();
+  let slideTimer = null;
 
-    async function loadPhotos() {
-      try {
-        const res = await fetch("/api/photos");
-        photos = await res.json();
-      } catch (e) {
-        // network error: purani list hi chalne do
+  async function loadPhotos(queueNew = false) {
+    try {
+      const response = await fetch("/api/photos");
+
+      if (!response.ok) {
+        throw new Error("Could not load photos");
       }
+
+      const latestPhotos = await response.json();
+
+      const newPhotos = latestPhotos.filter(
+        item => !knownIds.has(item.id)
+      );
+
+      latestPhotos.forEach(item => knownIds.add(item.id));
+
+      if (queueNew) {
+        priorityQueue.push(...newPhotos);
+      }
+
+      photos = latestPhotos;
+
+      return newPhotos.length;
+
+    } catch (error) {
+      console.error("Photo loading error:", error);
+      return 0;
     }
+  }
 
-    function showNext() {
-      if (photos.length === 0) {
-        empty.style.display = "flex";
-        photo.style.opacity = 0;
-        caption.style.display = "none";
-        return;
-      }
-      empty.style.display = "none";
-      if (index >= photos.length) index = 0;
-
-      const current = photos[index];
-      index++;
-
+  function showNext() {
+    if (photos.length === 0) {
+      empty.style.display = "flex";
       photo.style.opacity = 0;
-      setTimeout(() => {
-        photo.src = current.url;
-        photo.onload = () => { photo.style.opacity = 1; };
-        caption.textContent = "📸 " + current.name;
-        caption.style.display = "block";
-      }, 600);
+      photo.removeAttribute("src");
+      caption.style.display = "none";
+      return;
     }
 
-        source.onmessage = async (e) => {
-      const event = JSON.parse(e.data);
-      if (event.type === "photos_deleted") {
-        await loadPhotos();   // list refresh, hat chuki photos ab nahi aayengi
+    empty.style.display = "none";
+
+    let current;
+
+    if (priorityQueue.length > 0) {
+      current = priorityQueue.shift();
+    } else {
+      if (index >= photos.length) {
         index = 0;
-        showNext();
-      } else {
-        handleNewPhotos();
       }
-    };
-    
-    loadPhotos().then(showNext);
-    setInterval(showNext, SLIDE_SECONDS * 1000);
-    setInterval(loadPhotos, REFRESH_SECONDS * 1000);
-  </script>
+
+      current = photos[index];
+      index = (index + 1) % photos.length;
+    }
+
+    photo.style.opacity = 0;
+
+    setTimeout(() => {
+      photo.onload = () => {
+        photo.style.opacity = 1;
+      };
+
+      photo.src = current.url;
+
+      caption.textContent = "📸 " + current.name;
+      caption.style.display = "block";
+
+    }, 600);
+  }
+
+  function resetSlideTimer() {
+    clearInterval(slideTimer);
+
+    slideTimer = setInterval(
+      showNext,
+      SLIDE_SECONDS * 1000
+    );
+  }
+
+  async function handleNewPhotos() {
+    const added = await loadPhotos(true);
+
+    if (added > 0) {
+      showNext();
+      resetSlideTimer();
+    }
+  }
+
+  async function handleDeletedPhotos() {
+    await loadPhotos(false);
+
+    priorityQueue = priorityQueue.filter(
+      item => knownIds.has(item.id)
+    );
+
+    index = 0;
+    showNext();
+    resetSlideTimer();
+  }
+
+  // Connect the TV display to the backend SSE endpoint
+  const source = new EventSource("/events");
+
+  source.onmessage = async (e) => {
+    try {
+      const event = JSON.parse(e.data);
+
+      if (event.type === "photos_deleted") {
+        await handleDeletedPhotos();
+
+      } else if (event.type === "new_photos") {
+        await handleNewPhotos();
+      }
+
+    } catch (error) {
+      console.error("Live event error:", error);
+    }
+  };
+
+  source.onerror = () => {
+    console.warn("Live connection interrupted. Reconnecting...");
+  };
+
+  // Load existing photos when the display opens
+  async function initializeSlideshow() {
+    await loadPhotos(false);
+
+    showNext();
+    resetSlideTimer();
+  }
+
+  initializeSlideshow();
+
+  // Backup polling in case a live event is missed
+  setInterval(async () => {
+    const added = await loadPhotos(true);
+
+    if (added > 0) {
+      showNext();
+      resetSlideTimer();
+    }
+  }, REFRESH_SECONDS * 1000);
+
+</script>
+
 </body>
 </html>

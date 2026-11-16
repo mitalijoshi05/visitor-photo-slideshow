@@ -38,6 +38,16 @@ To use it with phones, run with `--host 0.0.0.0` and open
 ## Tests
     python -m pytest -v
 
+### Test Results
+
+- Automated tests: 15 passed, 1 warning.
+- Manual slideshow tests: All passed.
+- Consent validation: Passed.
+- Invalid file validation: Passed.
+- Maximum upload limit validation: Passed.
+
+For detailed test cases and results, see [TESTING.md](TESTING.md).
+
 ## Documentation
 - [ASSUMPTIONS.md](ASSUMPTIONS.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
