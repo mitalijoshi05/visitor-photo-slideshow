@@ -10,7 +10,12 @@ from fastapi.staticfiles import StaticFiles
 
 from app import events, ratelimit
 from app.cleanup import cleanup_loop
-from app.config import MAX_FILE_SIZE_BYTES, MAX_FILES_PER_UPLOAD, UPLOAD_DIR
+from app.config import (
+    MAX_FILE_SIZE_BYTES,
+    MAX_FILES_PER_UPLOAD,
+    SLIDE_DURATION_SECONDS,
+    UPLOAD_DIR,
+)
 from app.database import get_connection, init_db
 from app.images import ImageError, validate_and_save
 from app.security import hash_pin, verify_pin
@@ -44,6 +49,11 @@ def home():
 def display_page():
     return FileResponse("app/static/display.html")
 
+@app.get("/api/config")
+def public_config():
+    return {
+        "slide_duration_seconds": SLIDE_DURATION_SECONDS
+    }
 
 @app.post("/upload")
 async def upload(
