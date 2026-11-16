@@ -1,43 +1,325 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photo Slideshow</title>
+  <title>MOMENTRA | Live Slideshow</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
   <style>
-    html, body { margin: 0; height: 100%; background: #000; color: #fff;
-                 font-family: sans-serif; overflow: hidden; }
-    #stage { position: relative; width: 100%; height: 100%; }
-    #photo { width: 100%; height: 100%; object-fit: contain;
-             transition: opacity 0.6s; opacity: 0; }
-    #caption { position: absolute; left: 24px; bottom: 24px; font-size: 28px;
-               background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 8px;
-               display: none; }
-    #empty { position: absolute; inset: 0; display: flex; align-items: center;
-             justify-content: center; font-size: 32px; text-align: center; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background: #111A32;
+      color: #F8F7FF;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse at 50% 45%, #263052 0%, #151E39 48%, #0C1327 100%);
+    }
+
+    .ambient {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: #8267FF;
+      filter: blur(180px);
+      opacity: 0.13;
+      pointer-events: none;
+    }
+
+    .topbar {
+      position: absolute;
+      top: 30px;
+      left: 38px;
+      right: 38px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+    }
+
+    .brand-icon {
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #8267FF, #FF8378);
+      color: white;
+      font-size: 23px;
+    }
+
+    .live {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 17px;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 30px;
+      background: rgba(255,255,255,0.07);
+      color: #DAD8F2;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #35C9B1;
+      box-shadow: 0 0 12px #35C9B1;
+    }
+
+    #photo {
+      position: absolute;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      padding: 100px 70px 115px;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 0.9s ease;
+    }
+
+    .bottom-info {
+      position: absolute;
+      z-index: 5;
+      left: 40px;
+      bottom: 34px;
+      right: 40px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .caption-box {
+      display: none;
+      padding: 15px 22px;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 17px;
+      background: rgba(17,26,50,0.78);
+      backdrop-filter: blur(15px);
+      max-width: 70%;
+    }
+
+    .caption-label {
+      margin-bottom: 5px;
+      color: #FFAA83;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    #caption {
+      font-family: 'Playfair Display', serif;
+      font-size: 23px;
+      font-weight: 600;
+    }
+
+    #counter {
+      padding: 12px 17px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.08);
+      color: #DAD8F2;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    #empty {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 25px;
+    }
+
+    .empty-icon {
+      width: 90px;
+      height: 90px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 25px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, #8267FF, #FF8378);
+      font-size: 42px;
+      box-shadow: 0 15px 50px rgba(130,103,255,0.25);
+    }
+
+    #empty h1 {
+      margin: 0 0 12px;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(30px, 5vw, 52px);
+    }
+
+    #empty p {
+      max-width: 440px;
+      color: #AEB7D0;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .empty-brand {
+      margin-top: 30px;
+      color: #A99AFF;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+    }
+
+    .fullscreen-btn {
+      position: absolute;
+      top: 32px;
+      right: 40px;
+      z-index: 8;
+      margin-right: 145px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .fullscreen-btn:hover {
+      background: rgba(255,255,255,0.16);
+    }
+
+    @media (max-width: 600px) {
+      .topbar {
+        top: 18px;
+        left: 17px;
+        right: 17px;
+      }
+
+      .brand {
+        font-size: 16px;
+      }
+
+      .fullscreen-btn {
+        top: 76px;
+        right: 17px;
+        margin: 0;
+      }
+
+      #photo {
+        padding: 100px 15px 130px;
+      }
+
+      .bottom-info {
+        left: 17px;
+        right: 17px;
+        bottom: 18px;
+      }
+
+      #caption {
+        font-size: 18px;
+      }
+
+      .caption-box {
+        padding: 12px;
+      }
+    }
   </style>
 </head>
-<body>
-  <div id="stage">
-    <img id="photo" alt="">
-    <div id="caption"></div>
-    <div id="empty">🪔 Waiting for photos...<br>Scan the QR code to upload yours!</div>
-  </div>
 
- 
+<body>
+
+  <main id="stage">
+    <div class="ambient"></div>
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon">✦</span>
+        MOMENTRA
+      </div>
+
+      <div class="live">
+        <span class="live-dot"></span>
+        LIVE SLIDESHOW
+      </div>
+    </header>
+
+    <button class="fullscreen-btn" id="fullscreenBtn">
+      ⛶ Full Screen
+    </button>
+
+    <img id="photo" alt="Shared visitor photo">
+
+    <section id="empty">
+      <div class="empty-icon">✦</div>
+      <h1>Your moments belong here.</h1>
+      <p>
+        Beautiful memories are on their way.
+        Upload your photos and watch them come alive on the big screen.
+      </p>
+      <div class="empty-brand">MOMENTRA · EVERY MOMENT MATTERS</div>
+    </section>
+
+    <footer class="bottom-info">
+      <div class="caption-box" id="captionBox">
+        <div class="caption-label">A moment shared by</div>
+        <div id="caption"></div>
+      </div>
+
+      <div id="counter">Waiting for photos</div>
+    </footer>
+  </main>
+
 <script>
   let slideSeconds = 5;
   const REFRESH_SECONDS = 30;
 
   const photo = document.getElementById("photo");
   const caption = document.getElementById("caption");
+  const captionBox = document.getElementById("captionBox");
   const empty = document.getElementById("empty");
+  const counter = document.getElementById("counter");
 
   let photos = [];
   let index = 0;
   let priorityQueue = [];
   let knownIds = new Set();
   let slideTimer = null;
+  let transitionTimer = null;
 
   async function loadPhotos(queueNew = false) {
     try {
@@ -53,7 +335,15 @@
         item => !knownIds.has(item.id)
       );
 
-      latestPhotos.forEach(item => knownIds.add(item.id));
+      const latestIds = new Set(
+        latestPhotos.map(item => item.id)
+      );
+
+      knownIds = latestIds;
+
+      priorityQueue = priorityQueue.filter(
+        item => latestIds.has(item.id)
+      );
 
       if (queueNew) {
         priorityQueue.push(...newPhotos);
@@ -74,7 +364,8 @@
       empty.style.display = "flex";
       photo.style.opacity = 0;
       photo.removeAttribute("src");
-      caption.style.display = "none";
+      captionBox.style.display = "none";
+      counter.textContent = "Waiting for photos";
       return;
     }
 
@@ -93,28 +384,38 @@
       index = (index + 1) % photos.length;
     }
 
+    clearTimeout(transitionTimer);
     photo.style.opacity = 0;
 
-    setTimeout(() => {
+    transitionTimer = setTimeout(() => {
       photo.onload = () => {
         photo.style.opacity = 1;
       };
 
+      photo.onerror = () => {
+        console.error("Could not display photo:", current.url);
+        showNext();
+      };
+
       photo.src = current.url;
 
-      caption.textContent = "📸 " + current.name;
-      caption.style.display = "block";
+      caption.textContent = current.name;
+      captionBox.style.display = "block";
 
-    }, 600);
+      counter.textContent =
+        "PHOTO " + (photos.indexOf(current) + 1) +
+        " / " + photos.length;
+
+    }, 450);
   }
 
   function resetSlideTimer() {
     clearInterval(slideTimer);
 
     slideTimer = setInterval(
-    showNext,
-    slideSeconds * 1000
-  );
+      showNext,
+      slideSeconds * 1000
+    );
   }
 
   async function handleNewPhotos() {
@@ -129,16 +430,11 @@
   async function handleDeletedPhotos() {
     await loadPhotos(false);
 
-    priorityQueue = priorityQueue.filter(
-      item => knownIds.has(item.id)
-    );
-
     index = 0;
     showNext();
     resetSlideTimer();
   }
 
-  // Connect the TV display to the backend SSE endpoint
   const source = new EventSource("/events");
 
   source.onmessage = async (e) => {
@@ -147,7 +443,6 @@
 
       if (event.type === "photos_deleted") {
         await handleDeletedPhotos();
-
       } else if (event.type === "new_photos") {
         await handleNewPhotos();
       }
@@ -161,34 +456,32 @@
     console.warn("Live connection interrupted. Reconnecting...");
   };
 
-  // Load existing photos when the display opens
   async function initializeSlideshow() {
-  try {
-    const response = await fetch("/api/config");
+    try {
+      const response = await fetch("/api/config");
 
-    if (response.ok) {
-      const config = await response.json();
+      if (response.ok) {
+        const config = await response.json();
 
-      if (
-        Number.isFinite(config.slide_duration_seconds) &&
-        config.slide_duration_seconds > 0
-      ) {
-        slideSeconds = config.slide_duration_seconds;
+        if (
+          Number.isFinite(config.slide_duration_seconds) &&
+          config.slide_duration_seconds > 0
+        ) {
+          slideSeconds = config.slide_duration_seconds;
+        }
       }
+    } catch (error) {
+      console.error("Could not load slideshow settings:", error);
     }
-  } catch (error) {
-    console.error("Could not load slideshow settings:", error);
+
+    await loadPhotos(false);
+
+    showNext();
+    resetSlideTimer();
   }
-
-  await loadPhotos(false);
-
-  showNext();
-  resetSlideTimer();
-}
 
   initializeSlideshow();
 
-  // Backup polling in case a live event is missed
   setInterval(async () => {
     const added = await loadPhotos(true);
 
@@ -197,6 +490,29 @@
       resetSlideTimer();
     }
   }, REFRESH_SECONDS * 1000);
+
+  // Full-screen button
+  const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+  fullscreenBtn.addEventListener("click", async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        fullscreenBtn.textContent = "⛶ Exit Full Screen";
+      } else {
+        await document.exitFullscreen();
+        fullscreenBtn.textContent = "⛶ Full Screen";
+      }
+    } catch (error) {
+      console.error("Fullscreen error:", error);
+    }
+  });
+
+  document.addEventListener("fullscreenchange", () => {
+    fullscreenBtn.textContent = document.fullscreenElement
+      ? "⛶ Exit Full Screen"
+      : "⛶ Full Screen";
+  });
 
 </script>
 
